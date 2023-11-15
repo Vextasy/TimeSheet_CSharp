@@ -74,6 +74,7 @@ public class Client : IClient
                     var start = dateFrom.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.0000000");
                     var end = dateTo.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.0000000");
                     r.QueryParameters.Filter = $"start/DateTime ge '{start}' and start/DateTime le '{end}' and IsAllDay eq false";
+                    r.QueryParameters.Top = 999;
                     r.Options.WithAppOnly();
                 });
             if (events == null || events.Value == null)

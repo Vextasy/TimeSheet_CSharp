@@ -26,15 +26,16 @@ let mondays (from: DateTime) =
     ]
 */
 
-private IEnumerable<DateTime> mondays(DateTime from) {
+private IEnumerable<DateTime> mondays(DateTime from, DateTime to) {
     DayOfWeek dow = from.DayOfWeek;             // sunday = 0
     int dec = (int)(dow + 6) % 7;               // sunday -> 6, monday -> 0, tuesday -> 1
     DateTime mon1 = from.AddDays(-dec);         // monday of the first week containing days in the month
     
-    for (int w = 0; w <= 5; w++) {
+    for (int w = 0;; w++) {
         DateTime mon = mon1.AddDays(w * 7);
-        if (mon.Month != from.Month + 1)
-            yield return mon;                   // don't walk into the following month but allow last week in previous (e.g., dec=12)
+        if (mon > to)
+            break;
+        yield return mon;                   // don't walk into the following month but allow last week in previous (e.g., dec=12)
     }
 }
 
@@ -50,15 +51,16 @@ let saturdays (from: DateTime) =
     ]
 */
 
-private IEnumerable<DateTime> saturdays(DateTime from) {
+private IEnumerable<DateTime> saturdays(DateTime from, DateTime to) {
     DayOfWeek dow = from.DayOfWeek;                      // sunday = 0
     int dec = (int)(dow + 1) % 7;                        // friday -> 6, saturday -> 0, sunday -> 1, monday -> 2, tuesday -> 3
     DateTime sat1 = from.AddDays(-dec);                  // saturday of the first week containing days in the month
     
     for (int w = 0; w <= 5; w++) {
         DateTime sat = sat1.AddDays(w * 7);
-        if (sat.Month != from.Month + 1)
-            yield return sat;                             // don't walk into the following month but allow last week in previous (e.g., dec=12)
+        if (sat > to)
+            break;
+        yield return sat;                             // don't walk into the following month but allow last week in previous (e.g., dec=12)
     }
 }
 
@@ -188,7 +190,7 @@ public async Task<List<string>> summary(string userPrincipalName, DateTime fromD
     {
         output.Add($"{proj.name} = {fmtLongTime(Time(proj.tasks))}");
 
-        IEnumerable<DateTime> startdays = satweek ? saturdays(fromDate) : mondays(fromDate);
+        IEnumerable<DateTime> startdays = satweek ? saturdays(fromDate, toDate) : mondays(fromDate, toDate);
         foreach (var d in startdays)
         {
             var times = weekdays(d).Select(day => DayTime(proj.tasks, day));
